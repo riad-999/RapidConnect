@@ -15,7 +15,7 @@ The project has two main objectives:
 -   The server sends to Redis to forward the task to a worker.
 -   The server clears the Redis cache memory.
 -   The worker writes the data to the database.
-1.  Retrieving Available Data from Database:
+2.  Retrieving Available Data from Database:
 -   User sends a GET request to the server to retrieve data.
 -   The server checks the Redis cache memory for the availability of data.
 -   If the data is present in the cache, the server provides the user with the information in JSON format.
