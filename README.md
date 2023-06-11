@@ -1,5 +1,7 @@
 # RapidConnect: Full-Stack Web Application with React, Node.js, Redis, and MySQL
 ![](media/full-stack-app.gif)
+
+
 In this project we will develop a full stack application using
 
 1.  React (frontend) a component-based approach and efficient state management
