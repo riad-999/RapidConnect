@@ -15,7 +15,7 @@ The project has two main objectives:
 -   The server sends to Redis to forward the task to a worker.
 -   The server clears the Redis cache memory.
 -   The worker writes the data to the database.
-2.  Retrieving Available Data from Database:
+1.  Retrieving Available Data from Database:
 -   User sends a GET request to the server to retrieve data.
 -   The server checks the Redis cache memory for the availability of data.
 -   If the data is present in the cache, the server provides the user with the information in JSON format.
@@ -141,3 +141,81 @@ GET response from server after querying data from database. It has updated the R
 Second time GET response from server querying Redis cache:
 
 ![](media/aad38e8df8883629c2d9a0e0c65ee4df.png)
+
+# Server-App
+
+We will run the server application, Redis, and database portion inside docker using docker-compose. To do this we have installed a ubuntu VM using VMware. Then we have installed the docker-compose using root credentials.
+
+Download the project from git location.
+
+Git clone <https://github.com/hasanashik/RapidConnect.git>
+
+Run ‘*docker remove all containers’* prone to remove previous containers if any to prevent conflicts.
+
+Go to docker directory and run docker-compose up to up redis, mysql, redis and api-server.![](media/93ed0e8d509686ba8458291df168018c.png)
+
+NB: If Linux vm ip address changes than we need to replace 192.168.229.130 ip with new ip inside the source code js files.
+
+![](media/6b493afee40075090e932264807645cf.png)
+
+netstat -tln is showing that necessary ports including 3000, 5001 are opened.
+
+Let us take a look inside our api-server.
+
+In the index.js file first we have called ‘use strict’ to enable writing more reliable, maintainable, and secure JavaScript code.
+
+![](media/9c2e036fd7e4c389c9b603d55a75f8c1.png)
+
+We have imported dotenv to use environment variables from .env file, express to build our API, cors for sharing resources with other API, Redis for working with PUB/SUB and cache memory. Finally, MySQL for connecting with database.
+
+**dotenv.config()** loads the environment variables from .env file to utilize Redis, MySQL credentials, express port and other parameters.
+
+![](media/fabda8618e41dcd6a8992333c2313092.png)
+
+In line 35, we have created a Redis client using defined Redis URL. A getData function is defined which will execute a database query to fetch data from database.
+
+setRedisCache function is defined which will connect with Redis client and set the cache value as object named ‘key’.
+
+getRedisCache will read that cache value using defined ‘key’ object after making a connection with cache client.
+
+![](media/4b70129be6f935ef015fd98ec0b29c75.png)
+
+deleteRedisCache wiil free up the ‘key’ object value so that cache memory gets cleared.
+
+If any task is sent to Redis, Redis will assign a worker to do the task and response client immediately that task is submitted. publishToRedis will sent the data to Redis channel to do the task.
+
+So far, we have written all our required functions. Now, we will build the express API in the server to handle client GET, POST requests. If client send GET request in root resource, a log message will be sent to client with 200 status code. If any GET request is sent to ‘/data’ location, it will call a function getRedisCache to collect data from cache. If data exists then client will receive result immediately from response.
+
+If no cache data exists then getData will get called to fetch data from database. It will then update the cache using setRedisCache function.
+
+Client will get the fetched data as a response with 200 status code. If any error occurs during these two steps, error message will gets logged in the console with 500 status code.
+
+![](media/d7141c2080d6ea02e3f7c4445a15b203.png)
+
+To handle client POST request at ‘/create’ URL, data will be separated from POST request and passed to Redis to get written in databse through a worker. The cache will get deleted using deleteRedisCache function.
+
+The server api is launched in the defined expressPort (3000).
+
+# Worker Server
+
+A worker server is build using JavaScript which will take a task from Redis and do the task, in our case it is writing data to database.
+
+To connect with Redis and MySQL database required credentials are loaded from environment and stored in variables.
+
+In line 32, createData function is defined which will connect with MySQL database and execute the query to write user provided data.
+
+![](media/002c1d51ed2b073fe9f586d1270cff9b.png)
+
+![](media/0413440a30035a22a9c953e79d3fcacc.png)
+
+Then an immediately-invoked function expression (IIFE) is created which will immediately executed after defining the function. This allows the code within the function to run once without the need for an explicit function call. This function will create Redis client, and subscribe to it. It will not close the connection as worker will always listen to the Redis for any task. When subscriber gets ready event status, it subscribes to Redis channel using subscriber.subscribe(). Whenever any data comes to this channel, it gets written to database using createData function.
+
+# Database-Mysql
+
+A mysql database is prepared using dockerfile.
+
+![](media/93a638bc17e6f347c0632978c71d8ece.png)
+
+In the init_db.sql we are dropping mydb if any previous database in this name exists, and creating mydb database. Then, we are creating mytable table with id, data and a primary key as id column. We are also dropping this table before creating new one so that we do not create any conflict.
+
+Finally we are inserting default data in the database as ‘initial data’. When user send a GET request user will see this value fetched from database.
