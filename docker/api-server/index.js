@@ -1,11 +1,16 @@
 "use strict";
-import dotenv from "dotenv";
 import express from "express";
 import cors from "cors";
+import client from "prom-client"; // Import Prometheus client
 import { createClient } from "redis";
 import mysql from "mysql2/promise";
 
-dotenv.config();
+
+
+// Prometheus metrics setup
+const collectDefaultMetrics = client.collectDefaultMetrics;
+collectDefaultMetrics(); // Collect default metrics for Node.js runtime
+
 // environment variables
 const expressPort = process.env.PORT || 5001;
 
@@ -13,11 +18,12 @@ const expressPort = process.env.PORT || 5001;
 const redisUsername = process.env.REDIS_USERNAME || "";
 const redisPassword = process.env.REDIS_PASSWORD || "";
 const redisHost = process.env.REDIS_HOST || "";
+const redisHostRead = process.env.REDIS_HOST_READ || "";
 const redisPort = process.env.REDIS_PORT || "";
 const redisChannel = process.env.REDIS_CHANNEL || "";
 
 // mysql
-const sqlHost = process.env.MYSQL_HOST || "";
+const sqlHostRead = process.env.MYSQL_HOST_READ || "";
 const sqlUser = process.env.MYSQL_USERNAME || "";
 const sqlPassword = process.env.MYSQL_PASSWORD || "";
 const sqlDatabase = process.env.MYSQL_DATABASE || "";
@@ -25,18 +31,21 @@ const sqlTable = process.env.MYSQL_TABLE || "";
 
 // configs
 const redisUrl = `redis://${redisUsername}:${redisPassword}@${redisHost}:${redisPort}`;
-const dbConfig = {
-  host: sqlHost,
+const redisUrlRead = `redis://${redisUsername}:${redisPassword}@${redisHostRead}:${redisPort}`;
+
+const dbConfigRead = {
+  host: sqlHostRead,
   user: sqlUser,
   password: sqlPassword,
   database: sqlDatabase,
 };
 
 const redisClient = createClient({ url: redisUrl });
+const redisClientRead = createClient({ url: redisUrlRead });
 
 const getData = async () => {
   const sqlQuery = `SELECT data FROM ${sqlTable}`;
-  const sqlConnection = await mysql.createConnection(dbConfig);
+  const sqlConnection = await mysql.createConnection(dbConfigRead);
   return sqlConnection.execute(sqlQuery);
 };
 
@@ -49,7 +58,7 @@ const setRedisCache = async (jsonData) => {
 
 const getRedisCache = async () => {
   await redisClient.connect();
-  const cachedData = await redisClient.get("key");
+  const cachedData = await redisClientRead.get("key");
   await redisClient.disconnect();
   return cachedData;
 };

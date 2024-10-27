@@ -1,18 +1,21 @@
-# starting from node base image
+# Start from the Node 14 Alpine base image
 FROM node:14-alpine
 
-# chaging the working directory
+# Set the working directory
 WORKDIR /app
-# for debugging purpose
-# apk add --update --no-cache busybox-extras curl
 
-# copying package & yarn files and installing dependecies
+# Copy package and lock files to install dependencies
 COPY package.json .
 COPY yarn.lock .
-RUN yarn install 
 
-# copying rest of the files
+# Install dependencies
+RUN yarn install --production
+
+# Copy the rest of the application files
 COPY . .
 
-# starting the server
-CMD [ "node", "index.js" ]
+# Expose the port the app will run on (e.g., 3000)
+EXPOSE 3000
+
+# Start the server
+CMD ["node", "index.js"]

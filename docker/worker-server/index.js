@@ -1,14 +1,16 @@
 "use strict";
-import dotenv from "dotenv";
 import { createClient } from "redis";
+import client from "prom-client"; // Import Prometheus client
 import mysql from "mysql2/promise";
 
-dotenv.config();
+// Prometheus metrics setup
+const collectDefaultMetrics = client.collectDefaultMetrics;
+collectDefaultMetrics(); // Collect default metrics for Node.js runtime
 
 // redis
 const redisUsername = process.env.REDIS_USERNAME || "";
 const redisPassword = process.env.REDIS_PASSWORD || "";
-const redisHost = process.env.REDIS_HOST || "";
+const redisHostRead = process.env.REDIS_HOST_READ || "";
 const redisPort = process.env.REDIS_PORT || "";
 const redisChannel = process.env.REDIS_CHANNEL || "";
 
@@ -20,7 +22,7 @@ const sqlDatabase = process.env.MYSQL_DATABASE || "";
 const sqlTable = process.env.MYSQL_TABLE || "";
 
 // configs
-const redisUrl = `redis://${redisUsername}:${redisPassword}@${redisHost}:${redisPort}`;
+const redisUrl = `redis://${redisUsername}:${redisPassword}@${redisHostRead}:${redisPort}`;
 const dbConfig = {
   host: sqlHost,
   user: sqlUser,

@@ -3,7 +3,7 @@ import axios from "axios";
 export default function Home() {
   const [value, updateValue] = useState("create new data");
   const [input, setInput] = useState("");
-  const baseUrl = "http://192.168.229.130:5001";
+  const baseUrl = "http://node-api.riadprojects.xyz";
   const getDataUrl = `${baseUrl}/data`;
   const createDataUrl = `${baseUrl}/create`;
 
