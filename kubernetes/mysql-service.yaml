@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql
+  namespace: default  # Change this to your desired namespace
+spec:
+  ports:
+    - port: 3306        # Port that the service listens on
+      targetPort: 3306  # Port on the MySQL pod
+  clusterIP: None       # This creates a Headless Service
+  selector:
+    app: mysql          # Must match the label of the pods in the StatefulSet
+

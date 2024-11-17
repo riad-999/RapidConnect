@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis-primary-deployment
+  labels:
+    name: redis-primary
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: redis-primary
+  template:
+    metadata:
+      labels:
+        name: redis-primary
+    spec:
+      subdomain: redis-primary
+      containers:
+      - name: redis
+        image: 'redis:3.2.0-alpine'
+        command:
+          - "redis-server"
+        args:
+          - "--protected-mode"
+          - "no"
+          - "--requirepass"           # Redis argument to require a password
+          - "$(REDIS_PASSWORD)"       # Reference to the password environment variable
+        ports:
+        - containerPort: 6379
+        resources:
+          requests:
+            memory: "100Mi"
+            cpu: "100m"
+          limits:
+            memory: "200Mi"
+            cpu: "200m"
+        env:
+        - name: REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: redis-password
+              key: redis_password
+
+--- 
+
+apiVersion: v1
+kind: Service
+metadata:
+ name: redis-primary
+spec:
+ type: ClusterIP
+ ports:
+  - protocol: TCP
+    port: 6379
+    targetPort: 6379
+ selector:
+  name: redis-primary

@@ -1,0 +1,30 @@
+# mysql-secret-access-role.yaml
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: approle
+  namespace: default
+rules:
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["get", "list", "watch"]
+
+
+--- 
+
+# mysql-secret-access-binding.yaml
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: approle-binding
+  namespace: default
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: approle
+subjects:
+  - kind: ServiceAccount
+    name: default
+    namespace: default

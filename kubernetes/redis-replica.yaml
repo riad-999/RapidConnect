@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis-replica-deployment
+  labels:
+    name: redis-replica
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: redis-replica
+  template:
+    metadata:
+      labels:
+        name: redis-replica
+    spec:
+      subdomain: redis-replica
+      containers:
+        - name: redis
+          image: 'redis:6.2.0-alpine'
+          command:
+            - redis-server
+          args:
+            - '--replicaof'
+            - 'redis-primary.default.svc.cluster.local'
+            - '6379'
+            - '--masterauth'            
+            - '$(REDIS_PASSWORD)'
+            - '--requirepass'
+            - '$(REDIS_PASSWORD)'
+            - '--protected-mode'
+            - 'no'
+          ports:
+            - containerPort: 6379
+              name: redisport
+          resources:
+            requests:
+              memory: "100Mi"
+              cpu: "100m"
+            limits:
+              memory: "200Mi"
+              cpu: "200m"
+          env:
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: redis-password
+                  key: redis_password
+
+---
+
+
+apiVersion: v1
+kind: Service
+metadata:
+ name: redis-replica
+spec:
+ type: ClusterIP
+ ports:
+  - protocol: TCP
+    port: 6379
+    targetPort: 6379
+ selector:
+  name: redis-replica

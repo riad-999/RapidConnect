@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+data:
+  REDIS_HOST: "redis-primary.default.svc.cluster.local"
+  REDIS_HOST_READ: "redis-replica.default.svc.cluster.local"
+  REDIS_USERNAME: ""
+  REDIS_PORT: "6379"
+  REDIS_CHANNEL: "channel1"
+  PORT: "3000" 
+  MYSQL_HOST_READ: "mysql-0.mysql.default.svc.cluster.local" 
+  MYSQL_HOST: "mysql-0.mysql.default.svc.cluster.local"
+  MYSQL_USERNAME: "root" 
+  MYSQL_DATABASE: "mydatabase" 
+  MYSQL_TABLE: "mytable" 
+
+
+
